@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Crop Yield Prediction</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <h1>🌾 AI Crop Yield Prediction</h1>
+
+    <input type="text" id="crop" placeholder="Crop Name">
+
+    <input type="number" id="temp" placeholder="Temperature (°C)">
+
+    <input type="number" id="humidity" placeholder="Humidity (%)">
+
+    <input type="number" id="rainfall" placeholder="Rainfall (mm)">
+
+    <input type="number" id="ph" placeholder="Soil pH">
+
+    <button onclick="predictYield()">Predict Yield</button>
+
+    <br><br>
+
+    <p id="result"></p>
+
+    <br>
+
+    <button onclick="location.href='/dashboard'">
+        ⬅ Back to Dashboard
+    </button>
+
+</div>
+
+<script>
+
+async function predictYield(){
+
+    let crop=document.getElementById("crop").value;
+    let temp=document.getElementById("temp").value;
+    let humidity=document.getElementById("humidity").value;
+    let rainfall=document.getElementById("rainfall").value;
+    let ph=document.getElementById("ph").value;
+
+    if(crop=="" || temp=="" || humidity=="" || rainfall=="" || ph==""){
+        alert("Please fill all the fields.");
+        return;
+    }
+
+    try{
+
+        const response = await fetch("/predict",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                crop:crop,
+                temp:temp,
+                humidity:humidity,
+                rainfall:rainfall,
+                ph:ph
+            })
+        });
+
+        const data = await response.json();
+        let history = JSON.parse(localStorage.getItem("predictionHistory")) || [];
+
+history.push({
+    crop: crop,
+    temp: temp,
+    humidity: humidity,
+    rainfall: rainfall,
+    ph: ph,
+    yield: data.yield
+});
+
+localStorage.setItem("predictionHistory", JSON.stringify(history));
+
+        document.getElementById("result").innerHTML=
+        "<h3>🌱 Prediction Result</h3>"+
+        "<b>Crop:</b> "+data.crop+"<br><br>"+
+        "<b>Estimated Yield:</b> "+data.yield+" Tons/Hectare<br><br>"+
+        "<b>"+data.message+"</b>";
+
+    }
+    catch(error){
+        alert("Backend is not running!");
+    }
+
+}
+
+</script>
+
+</body>
+</html>
